@@ -1,6 +1,5 @@
 import urllib
 import webbrowser
-from pycbrf.toolbox import ExchangeRates
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.gridlayout import GridLayout
@@ -8,7 +7,10 @@ from kivy.uix.boxlayout import BoxLayout
 from kivymd.theming import ThemeManager
 from kivy.metrics import *
 from kivy.uix.screenmanager import Screen
-import time
+
+
+import requests
+from bs4 import BeautifulSoup
 
 
 
@@ -343,13 +345,21 @@ class Converter(Screen):
 	def __init__(self, **kwargs):
 		
 		try:
-	
-			self.time = time.strftime('%Y-%m-%d')
+			HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'}
+
+			html = requests.get('https://kaliningrad.bankiros.ru/currency/', headers=HEADERS).text
+			soup = BeautifulSoup(html, 'lxml')
+
+			div_tags1 = soup.find_all('td', {'class': 'currency-value'})
+			img_tags1 = [div.find('span') for div in div_tags1]
+
+			image_src1 = [img['data-curse-val'] for img in img_tags1]
 			
-			rates = ExchangeRates(self.time, locale_en=True)
-			self.usd = rates['USD'].value
-			rates = ExchangeRates(self.time, locale_en=True)
-			self.eur = rates['EUR'].value
+			valist = list(image_src1)
+			
+			self.usd = (valist[2])
+			
+			self.eur = (valist[5])
 			
 			self.rub = 1
 			
@@ -409,6 +419,10 @@ class Main(BoxLayout):
 	def __init__(self, **kwargs):
 		self.math = ""
 		self.realmath = ""
+		
+		
+
+
 		super().__init__(**kwargs)
 
 	def add_num(self, instance):
